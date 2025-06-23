@@ -1,0 +1,5 @@
+{
+  "name": "Office Refreshments Tracker",
+  "description": "A web application to track daily office expenses for items like tea, samosa, and namkeen. It allows adding, viewing, and summarizing expenses with data persisted in the browser.",
+  "requestFramePermissions": []
+}
