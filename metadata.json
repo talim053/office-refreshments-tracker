@@ -1,6 +1,0 @@
-
-{
-  "name": "Office Refreshments Record",
-  "description": "A web application to keep simple records of daily office refreshments for items like tea, samosa, and namkeen. Allows adding, viewing, and summarizing records with data persisted in the browser.",
-  "requestFramePermissions": []
-}
