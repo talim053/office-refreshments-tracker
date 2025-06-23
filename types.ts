@@ -1,19 +1,25 @@
 
-export const ITEM_OPTIONS = ["Tea", "Samosa", "Namkeen", "Coffee", "Biscuits", "Other"] as const;
+export const ITEM_OPTIONS = ["Tea", "Samosa", "Namkeen"] as const;
 export type ItemName = typeof ITEM_OPTIONS[number];
+
+export const TIME_SLOT_OPTIONS = ["Morning", "Afternoon", "Evening"] as const;
+export type TimeSlot = typeof TIME_SLOT_OPTIONS[number];
 
 export interface ExpenseEntry {
   id: string;
-  date: string; // YYYY-MM-DD
   itemName: ItemName;
   quantity: number;
-  pricePerItem: number;
-  personName: string;
-  totalCost: number;
+  dateTime: string; // ISO string for the timestamp
+  timeSlot: TimeSlot;
+}
+
+export interface ItemToLog {
+  itemName: ItemName;
+  quantity: number;
 }
 
 export interface ExpenseFormProps {
-  onAddEntry: (entryData: Omit<ExpenseEntry, 'id' | 'totalCost'>) => void;
+  onSaveRecords: (itemsToLog: ItemToLog[], timeSlot: TimeSlot) => void;
 }
 
 export interface ExpenseListItemProps {

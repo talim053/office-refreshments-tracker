@@ -1,141 +1,96 @@
 
 import React, { useState } from 'react';
-import { ExpenseFormProps, ItemName, ITEM_OPTIONS } from '../types';
+import { ExpenseFormProps, ITEM_OPTIONS, ItemName, ItemToLog, TimeSlot, TIME_SLOT_OPTIONS } from '../types';
 
-const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddEntry }) => {
-  const [date, setDate] = useState<string>(new Date().toLocaleDateString('en-CA')); // YYYY-MM-DD
-  const [itemName, setItemName] = useState<ItemName>(ITEM_OPTIONS[0]);
-  const [quantity, setQuantity] = useState<string>('1');
-  const [pricePerItem, setPricePerItem] = useState<string>('');
-  const [personName, setPersonName] = useState<string>('');
-  const [error, setError] = useState<string>('');
+const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSaveRecords }) => {
+  const initialQuantities = ITEM_OPTIONS.reduce((acc, itemName) => {
+    acc[itemName] = '';
+    return acc;
+  }, {} as Record<ItemName, string>);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const [quantities, setQuantities] = useState<Record<ItemName, string>>(initialQuantities);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot>(TIME_SLOT_OPTIONS[0]);
 
-    const numQuantity = parseInt(quantity, 10);
-    const numPrice = parseFloat(pricePerItem);
-
-    if (!date || !itemName || !personName.trim()) {
-        setError('Date, Item, and Person Name are required.');
-        return;
+  const handleQuantityChange = (itemName: ItemName, value: string) => {
+    if (value === '' || (/^\d+$/.test(value) && parseInt(value, 10) >= 0)) {
+      setQuantities(prev => ({
+        ...prev,
+        [itemName]: value,
+      }));
     }
-    if (isNaN(numQuantity) || numQuantity <= 0) {
-      setError('Quantity must be a positive number.');
-      return;
-    }
-    if (isNaN(numPrice) || numPrice <= 0) {
-      setError('Price per item must be a positive number.');
-      return;
-    }
-
-    onAddEntry({
-      date,
-      itemName,
-      quantity: numQuantity,
-      pricePerItem: numPrice,
-      personName: personName.trim(),
-    });
-
-    // Reset form
-    // setDate(new Date().toLocaleDateString('en-CA')); // Keep date or reset as preferred
-    setItemName(ITEM_OPTIONS[0]);
-    setQuantity('1');
-    setPricePerItem('');
-    setPersonName('');
   };
 
-  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500";
+  const handleTimeSlotChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedTimeSlot(event.target.value as TimeSlot);
+  };
+
+  const handleSaveClick = () => {
+    const itemsToLog: ItemToLog[] = ITEM_OPTIONS.map(itemName => ({
+      itemName,
+      quantity: parseInt(quantities[itemName], 10) || 0,
+    })).filter(item => item.quantity > 0);
+
+    onSaveRecords(itemsToLog, selectedTimeSlot);
+    // Reset quantities after saving, keep time slot for potential subsequent entries
+    setQuantities(initialQuantities);
+  };
+  
+  const canSave = ITEM_OPTIONS.some(itemName => (parseInt(quantities[itemName], 10) || 0) > 0);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {error && <p className="text-red-500 dark:text-red-400 text-sm bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 p-3 rounded-md">{error}</p>}
-      <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Date
-          </label>
-          <input
-            type="date"
-            id="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className={commonInputClass}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="personName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Person Name
-          </label>
-          <input
-            type="text"
-            id="personName"
-            value={personName}
-            onChange={(e) => setPersonName(e.target.value)}
-            className={commonInputClass}
-            placeholder="e.g., John Doe"
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="itemName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Item
-          </label>
-          <select
-            id="itemName"
-            value={itemName}
-            onChange={(e) => setItemName(e.target.value as ItemName)}
-            className={commonInputClass}
-          >
-            {ITEM_OPTIONS.map(option => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-        </div>
-         <div>
-          <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Quantity
-          </label>
-          <input
-            type="number"
-            id="quantity"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            className={commonInputClass}
-            min="1"
-            placeholder="e.g., 2"
-            required
-          />
-        </div>
-        <div className="sm:col-span-2">
-          <label htmlFor="pricePerItem" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Price Per Item (₹)
-          </label>
-          <input
-            type="number"
-            id="pricePerItem"
-            value={pricePerItem}
-            onChange={(e) => setPricePerItem(e.target.value)}
-            className={commonInputClass}
-            step="0.01"
-            min="0.01"
-            placeholder="e.g., 10.50"
-            required
-          />
-        </div>
+    <div className="space-y-8">
+      <div>
+        <label htmlFor="time-slot" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Select Time Slot
+        </label>
+        <select
+          id="time-slot"
+          name="time-slot"
+          value={selectedTimeSlot}
+          onChange={handleTimeSlotChange}
+          className="mt-1 block w-full py-2.5 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm text-gray-900 dark:text-gray-100"
+          aria-label="Select Time Slot"
+        >
+          {TIME_SLOT_OPTIONS.map(slot => (
+            <option key={slot} value={slot}>{slot}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="space-y-6">
+        {ITEM_OPTIONS.map(itemName => (
+          <div key={itemName}>
+            <label htmlFor={`quantity-${itemName}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Quantity for {itemName}
+            </label>
+            <input
+              type="number"
+              id={`quantity-${itemName}`}
+              name={`quantity-${itemName}`}
+              value={quantities[itemName]}
+              onChange={e => handleQuantityChange(itemName, e.target.value)}
+              min="0"
+              placeholder="0"
+              className="mt-1 block w-full py-2.5 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+              aria-label={`Quantity for ${itemName}`}
+            />
+          </div>
+        ))}
       </div>
       
-      <div>
+      <div className="pt-2 flex justify-end">
         <button
-          type="submit"
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-800 transition-colors duration-150"
+          type="button"
+          onClick={handleSaveClick}
+          disabled={!canSave}
+          className={`py-2.5 px-8 border border-transparent rounded-lg shadow-sm text-base font-medium text-white 
+            ${canSave ? 'bg-primary-600 hover:bg-primary-700 focus:ring-primary-500' : 'bg-gray-400 dark:bg-gray-500 cursor-not-allowed'}
+            focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-150 ease-in-out`}
         >
-          Add Expense
+          Save Records
         </button>
       </div>
-    </form>
+    </div>
   );
 };
 
