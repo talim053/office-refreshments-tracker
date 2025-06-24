@@ -1,16 +1,8 @@
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, '.', '');
+// vite.config.ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
-  return {
-    base: "/office-refreshments-tracker/",  // <-- 👈 Yeh line add karo
-    define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-    },
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, '.'),
-      }
-    }
-  };
+export default defineConfig({
+  plugins: [react()],
+  base: '/office-refreshments-tracker/', // <-- important for GitHub Pages
 });
