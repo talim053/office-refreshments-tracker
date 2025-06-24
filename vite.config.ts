@@ -1,8 +1,7 @@
-// vite.config.ts
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  base: '/office-refreshments-tracker/', // ✅ GitHub repo name
   plugins: [react()],
-  base: '/office-refreshments-tracker/', // <-- important for GitHub Pages
 });
